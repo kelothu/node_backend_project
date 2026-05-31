@@ -1,0 +1,9 @@
+node_modules/
+.env
+logs/
+.DS_Store
+DEVELOPER_GUIDE.md
+PROJECT_INFO.md
+DATABASE_SCHEMA.md
+SAMPLE_IMPORT.csv
+CSV_IMPORT_GUIDE.md
