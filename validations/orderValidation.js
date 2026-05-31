@@ -1,9 +1,9 @@
 const { body } = require('express-validator');
 
 const createOrderRules = [
-  body('order_number').notEmpty().withMessage('Order number is required'),
-  body('total_amount').isDecimal().withMessage('Valid total amount is required'),
   body('shipping_address').notEmpty().withMessage('Shipping address is required'),
+  body('billing_address').optional().isString(),
+  body('notes').optional().isString(),
 ];
 
 const updateOrderRules = [

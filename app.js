@@ -17,13 +17,18 @@ const categoryRoutes = require('./routes/categories');
 const orderRoutes = require('./routes/orders');
 const reviewRoutes = require('./routes/reviews');
 const favoriteRoutes = require('./routes/favorites');
+const cartRoutes = require('./routes/cart');
+const adminRoutes = require('./routes/admin');
+const publicRoutes = require('./routes/public');
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS Configuration
-const allowedOrigins = [];
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:3000'];
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) {
@@ -49,6 +54,15 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+
 // Define routes
 app.get("/", (req, res) => {
     return res.send("Node Backend is Running...");
@@ -61,6 +75,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/favorites', favoriteRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/public', publicRoutes);
 
 // Global error handler
 app.use(errorHandler);

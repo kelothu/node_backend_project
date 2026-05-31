@@ -1,11 +1,14 @@
 const productService = require('../services/productService');
+const bulkService = require('../services/bulkService');
+const pdfService = require('../services/pdfService');
 const logger = require('../config/logger');
+const fs = require('fs');
 const { successResponse, errorResponse } = require('../utils/apiResponse');
 
 const getAllProducts = async (req, res, next) => {
   try {
-    const products = await productService.getAllProducts();
-    return successResponse(res, 200, 'Products fetched successfully', products);
+    const data = await productService.getAllProducts(req.query);
+    return successResponse(res, 200, 'Products fetched successfully', data);
   } catch (error) {
     logger.error(`Failed to get all products: ${error.message}`);
     next(error);
@@ -64,10 +67,58 @@ const deleteProduct = async (req, res, next) => {
   }
 };
 
+const exportProducts = async (req, res, next) => {
+  try {
+    const csvData = await bulkService.exportProductsToCSV();
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=products.csv');
+    return res.status(200).send(csvData);
+  } catch (error) {
+    logger.error(`Export failed: ${error.message}`);
+    next(error);
+  }
+};
+
+const importProducts = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return errorResponse(res, 400, 'No CSV file uploaded. Please ensure you are using the field name "file" and sending the request as multipart/form-data.');
+    }
+
+    const summary = await bulkService.importProductsFromCSV(req.file.path);
+    
+    // Clean up file
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    return successResponse(res, 200, 'Products imported successfully', summary);
+  } catch (error) {
+    logger.error(`Import failed: ${error.message}`);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    next(error);
+  }
+};
+
+const exportProductsPDF = async (req, res, next) => {
+  try {
+    const pdfBuffer = await pdfService.generateProductInventoryPDF();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=inventory-report.pdf');
+    return res.status(200).send(pdfBuffer);
+  } catch (error) {
+    logger.error(`PDF Export failed: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  exportProducts,
+  importProducts,
+  exportProductsPDF
 };

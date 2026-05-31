@@ -37,6 +37,10 @@ const Product = sequelize.define('Product', {
     type: DataTypes.INTEGER,
     defaultValue: 0
   },
+  low_stock_threshold: {
+    type: DataTypes.INTEGER,
+    defaultValue: 5
+  },
   is_active: {
     type: DataTypes.BOOLEAN,
     defaultValue: true
@@ -50,6 +54,12 @@ const Product = sequelize.define('Product', {
   },
   specifications: {
     type: DataTypes.JSON
+  },
+  is_low_stock: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.quantity <= this.low_stock_threshold;
+    }
   }
 }, {
   tableName: 'products',

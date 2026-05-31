@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const { User } = require('../models/index.js');
 const bcrypt = require('bcryptjs'); // They used bcryptjs in their snippet/User model previously
 const { generateUserAccessToken, generateUserRefreshToken } = require('../utils/jwtUtils');
@@ -53,6 +55,19 @@ const updateUserProfile = async (userId, updateData) => {
 
   if (!user) {
     throw new Error('User not found');
+  }
+
+  // If a new profile picture is provided, delete the old one if it exists
+  if (updateData.profile_picture && user.profile_picture) {
+    const oldPath = path.join(__dirname, '..', user.profile_picture);
+    if (fs.existsSync(oldPath)) {
+      try {
+        fs.unlinkSync(oldPath);
+      } catch (err) {
+        // Log error but don't block the update
+        console.error(`Failed to delete old profile picture: ${err.message}`);
+      }
+    }
   }
 
   user.name = updateData.name || user.name;

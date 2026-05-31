@@ -11,37 +11,113 @@ const router = express.Router();
 router.use(isAuthenticated);
 
 /**
- * @route   GET /api/orders
- * @desc    Get all orders for the authenticated user/admin
- * @access  Private
+ * @swagger
+ * /api/orders:
+ *   get:
+ *     summary: Get all orders for the authenticated user/admin
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Orders fetched
  */
 router.get('/', OrderController.getAllOrders);
 
 /**
- * @route   GET /api/orders/:id
- * @desc    Get order by ID
- * @access  Private
+ * @swagger
+ * /api/orders/{id}:
+ *   get:
+ *     summary: Get order by ID
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Order details fetched
  */
 router.get('/:id', OrderController.getOrderById);
 
 /**
- * @route   POST /api/orders
- * @desc    Create a new order
- * @access  Private
+ * @swagger
+ * /api/orders:
+ *   post:
+ *     summary: Create a new order (Checkout)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               shipping_address:
+ *                 type: string
+ *               billing_address:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Order placed successfully
  */
 router.post('/', createOrderRules, validate, OrderController.createOrder);
 
 /**
- * @route   PUT /api/orders/:id
- * @desc    Update an order's status
- * @access  Private (Admin)
+ * @swagger
+ * /api/orders/{id}:
+ *   put:
+ *     summary: Update order status (Admin Only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [pending, processing, shipped, delivered, cancelled]
+ *               notes:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order status updated
  */
 router.put('/:id', authorize('admin'), updateOrderRules, validate, OrderController.updateOrder);
 
 /**
- * @route   DELETE /api/orders/:id
- * @desc    Delete an order
- * @access  Private (Admin)
+ * @swagger
+ * /api/orders/{id}:
+ *   delete:
+ *     summary: Delete an order record (Admin Only)
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Order deleted
  */
 router.delete('/:id', authorize('admin'), OrderController.deleteOrder);
 

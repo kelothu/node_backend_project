@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { User, RefreshToken } = require('../models/index');
 const userService = require('../services/userService');
 const logger = require('../config/logger');

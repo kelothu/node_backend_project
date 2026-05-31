@@ -4,7 +4,7 @@ const { successResponse, errorResponse } = require('../utils/apiResponse');
 
 const addToFavorites = async (req, res, next) => {
   try {
-    const { productId } = req.body;
+    const productId = req.body.product_id || req.body.productId;
     if (!productId) return errorResponse(res, 400, 'Product ID is required');
 
     const result = await favoriteProductService.addToFavorites(req.userId, productId);
@@ -71,7 +71,10 @@ const getFavoriteCount = async (req, res, next) => {
 
 const bulkRemoveFromFavorites = async (req, res, next) => {
   try {
-    const { productIds } = req.body;
+    const productIds = req.body.product_ids || req.body.productIds;
+    if (!productIds || !Array.isArray(productIds)) {
+        return errorResponse(res, 400, 'Product IDs array is required');
+    }
     const deletedCount = await favoriteProductService.bulkRemoveFromFavorites(req.userId, productIds);
     
     return successResponse(res, 200, `Successfully removed ${deletedCount} item(s) from favorites`);

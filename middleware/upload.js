@@ -21,25 +21,22 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter (example: images only)
-const fileFilter = (req, file, cb) => {
+// File filter (Images only)
+const imageFilter = (req, file, cb) => {
   const allowedTypes = [
     'image/jpeg',
     'image/png',
-    'image/webp',
-    'image/svg+xml',   // for SVG files
-    'application/pdf', // for PDF files
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // for DOCX files
+    'image/webp'
   ];
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file type'), false);
+    cb(new Error('Only image files (JPEG, PNG, WebP) are allowed!'), false);
   }
 };
 
 const limits = {
-  fileSize: 5 * 1024 * 1024 // 5MB max
+  fileSize: 2 * 1024 * 1024 // 2MB max
 };
 
-module.exports = multer({ storage, fileFilter, limits });
+module.exports = multer({ storage, fileFilter: imageFilter, limits });

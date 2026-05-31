@@ -16,51 +16,137 @@ const authLimiter = rateLimit({
 });
 
 /**
- * @route   POST /api/users/login
- * @desc    Log in a user and set cookies
- * @access  Public
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Customer login
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
  */
 router.post('/login', authLimiter, loginRules, validate, UserController.loginUser);
 
 /**
- * @route   POST /api/users/register
- * @desc    Register a new user
- * @access  Public
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     summary: Register a new customer
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Registration successful
  */
 router.post('/register', authLimiter, registerRules, validate, UserController.registerUser);
 
 /**
- * @route   POST /api/users/refresh-token
- * @desc    Refresh user access token
- * @access  Public
+ * @swagger
+ * /api/users/refresh-token:
+ *   post:
+ *     summary: Refresh customer access token
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Token refreshed
  */
 router.post('/refresh-token', UserController.refreshUserToken);
 
 /**
- * @route   POST /api/users/logout
- * @desc    Log out a user
- * @access  Public
+ * @swagger
+ * /api/users/logout:
+ *   post:
+ *     summary: Customer logout
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Logout successful
  */
 router.post('/logout', UserController.logoutUser);
 
 /**
- * @route   GET /api/users/profile
- * @desc    Get user profile (requires authentication)
- * @access  Private (User)
+ * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get customer profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile fetched successfully
+ *       401:
+ *         description: Unauthorized
  */
 router.get('/profile', isAuthenticated, UserController.getProfile);
 
 /**
- * @route   PUT /api/users/profile
- * @desc    Update user profile with picture support
- * @access  Private (User)
+ * @swagger
+ * /api/users/profile:
+ *   put:
+ *     summary: Update customer profile
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               profile_picture:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
  */
 router.put('/profile', isAuthenticated, upload.single('profile_picture'), updateProfileRules, validate, UserController.updateProfile);
 
 /**
- * @route   GET /api/users/
- * @desc    Get all users list
- * @access  Private (Admin)
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: Get all users (Admin Only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Users fetched successfully
+ *       403:
+ *         description: Forbidden (Admin only)
  */
 router.get('/', isAuthenticated, authorize('admin'), UserController.getAllUsers);
 

@@ -14,7 +14,7 @@ const generateAdminAccessToken = (admin) => {
     role: admin.role,
   };
 
-  return jwt.sign(payload, process.env.JWT_ADMIN_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, process.env.JWT_ADMIN_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' });
 };
 
 // Verify admin access token
@@ -33,7 +33,7 @@ const generateUserAccessToken = (user) => {
     role: user.role
   };
 
-  return jwt.sign(payload, process.env.JWT_USER_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, process.env.JWT_USER_SECRET, { expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m' });
 };
 
 // Verify user access token
@@ -56,7 +56,7 @@ const generateAdminRefreshToken = (admin, rememberMe = false) => {
     role: admin.role
   };
 
-  const expiresIn = rememberMe ? '30d' : '1d';
+  const expiresIn = rememberMe ? '30d' : (process.env.JWT_REFRESH_EXPIRES_IN || '7d');
 
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET_ADMIN, { expiresIn });
 };
@@ -77,7 +77,7 @@ const generateUserRefreshToken = (user, rememberMe = false) => {
     role: user.role
   };
 
-  const expiresIn = rememberMe ? '30d' : '1d';
+  const expiresIn = rememberMe ? '30d' : (process.env.JWT_REFRESH_EXPIRES_IN || '7d');
 
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET_USER, { expiresIn });
 };

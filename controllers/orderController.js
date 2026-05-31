@@ -4,7 +4,8 @@ const { successResponse, errorResponse } = require('../utils/apiResponse');
 
 const getAllOrders = async (req, res, next) => {
   try {
-    const orders = await orderService.getAllOrders();
+    const isAdmin = req.userRole === 'admin';
+    const orders = await orderService.getAllOrders(req.userId, isAdmin);
     return successResponse(res, 200, 'Orders fetched successfully', orders);
   } catch (error) {
     logger.error(`Failed to get all orders: ${error.message}`);
@@ -14,7 +15,8 @@ const getAllOrders = async (req, res, next) => {
 
 const getOrderById = async (req, res, next) => {
   try {
-    const order = await orderService.getOrderById(req.params.id);
+    const isAdmin = req.userRole === 'admin';
+    const order = await orderService.getOrderById(req.params.id, req.userId, isAdmin);
     return successResponse(res, 200, 'Order fetched successfully', order);
   } catch (error) {
     logger.error(`Failed to get order ${req.params.id}: ${error.message}`);
@@ -27,18 +29,22 @@ const getOrderById = async (req, res, next) => {
 
 const createOrder = async (req, res, next) => {
   try {
+    // Expecting shipping_address and optionally billing_address/notes in req.body
     const order = await orderService.createOrder(req.body, req.userId);
-    logger.info(`Order created successfully`);
-    return successResponse(res, 201, 'Order created successfully', order);
+    logger.info(`Order ${order.order_number} created successfully for user ${req.userId}`);
+    return successResponse(res, 201, 'Order placed successfully', order);
   } catch (error) {
-    logger.error(`Failed to create order: ${error.message}`);
+    logger.error(`Checkout failed for user ${req.userId}: ${error.message}`);
+    if (error.message === 'Cannot checkout with an empty cart') {
+        return errorResponse(res, 400, error.message);
+    }
     next(error);
   }
 };
 
 const updateOrder = async (req, res, next) => {
   try {
-    await orderService.updateOrder(req.params.id, req.body);
+    await orderService.updateOrder(req.params.id, req.body, req.userId);
     logger.info(`Order ${req.params.id} updated successfully`);
     return successResponse(res, 200, 'Order updated successfully');
   } catch (error) {

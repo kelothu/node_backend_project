@@ -1,4 +1,4 @@
-const User = require('../models/User.js');
+const { User } = require('../models/index');
 
 /**
  * Role-based authorization middleware.
@@ -8,21 +8,37 @@ const User = require('../models/User.js');
 const authorize = (...roles) => {
     return async (req, res, next) => {
         try {
-            const user = await User.findByPk(req.userId);
+            // Priority 1: Use role already verified and attached by authMiddleware
+            let currentRole = req.userRole;
 
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
+            // Priority 2: Fallback to DB lookup if role is missing from request
+            if (!currentRole && req.userId) {
+                const user = await User.findByPk(req.userId);
+                if (user) {
+                    currentRole = user.role;
+                }
             }
 
-            if (!roles.includes(user.role)) {
-                return res.status(403).json({ message: 'Access denied. Insufficient permissions.' });
+            if (!currentRole) {
+                return res.status(401).json({ message: 'Authentication required' });
             }
 
-            req.userRole = user.role;
+            // Standardize to lowercase for robust comparison
+            const normalizedRole = currentRole.toLowerCase();
+            const normalizedAllowedRoles = roles.map(r => r.toLowerCase());
+
+            if (!normalizedAllowedRoles.includes(normalizedRole)) {
+                return res.status(403).json({ 
+                    success: false,
+                    message: `Access denied. Requied role: [${roles.join(', ')}], Your role: [${currentRole}]` 
+                });
+            }
+
+            req.userRole = currentRole;
             next();
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ message: 'Authorization failed' });
+            console.error('Authorization Error:', error);
+            return res.status(500).json({ message: 'Authorization processing failed' });
         }
     };
 };
